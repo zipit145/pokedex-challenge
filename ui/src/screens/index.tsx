@@ -6,7 +6,7 @@ import Pokemon from './pokemon'
 const Screens: React.FC = () => (
   <Router style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
     <Home path="/" />
-    <Pokemon path="/pokemon" />
+    <Pokemon path="/pokemon/*" />
   </Router>
 )
 
