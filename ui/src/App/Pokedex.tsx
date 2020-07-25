@@ -120,8 +120,8 @@ const Screen = styled.div<{ isOn?: boolean }>`
   display: flex;
   background-color: ${props => (props.isOn ? '#22B1C7' : '#434c4e')};
   transition-property: background-color;
-  transition-duration: ${props => (props.isOn ? '4s' : '200ms')};
-  transition-delay: ${props => (props.isOn ? '2s' : '100ms')};
+  transition-duration: ${props => (props.isOn ? '2s' : '1s')};
+  transition-delay: ${props => (props.isOn ? '1s' : '1s')};
 `
 
 const Content = styled.div<{ isOn?: boolean }>`
@@ -129,32 +129,62 @@ const Content = styled.div<{ isOn?: boolean }>`
   display: flex;
   opacity: ${props => (props.isOn ? 1 : 0)};
   transition-property: opacity;
-  transition-duration: ${props => (props.isOn ? '4s' : '200ms')};
-  transition-delay: ${props => (props.isOn ? '2s' : '100ms')};
+  transition-duration: ${props => (props.isOn ? '2s' : '1s')};
+  transition-delay: ${props => (props.isOn ? '1s' : '1s')};
   overflow-y: scroll;
 `
 
-const Pokedex: React.FC = ({ children }) => {
+const Pokedex: React.FC<{ children: (clickLink: Function) => any }> = ({
+  children,
+}) => {
   const [isOn, setIsOn] = React.useState(false)
   const [isButtonPressed, setIsButtonPressed] = React.useState(false)
   const [isButtonReleased, setIsButtonReleased] = React.useState(false)
+  const [isLinkClicked, setIsLinkClicked] = React.useState(false)
+  const [isStartupPlaying, setIsStartupPlaying] = React.useState(false)
+  const [isShutdownPlaying, setIsShutdownPlaying] = React.useState(false)
 
   function pressButton() {
     setIsButtonPressed(true)
-    setTimeout(() => {
-      setIsButtonPressed(false)
-    }, 300)
+  }
+
+  function handlePressButtonFinished() {
+    setIsButtonPressed(false)
   }
 
   function releaseButton() {
+    if (isOn) {
+      setIsStartupPlaying(false)
+      setIsShutdownPlaying(true)
+    } else {
+      setIsShutdownPlaying(false)
+      setIsStartupPlaying(true)
+    }
     setIsOn(!isOn)
     setIsButtonReleased(true)
-    setTimeout(() => {
-      if (isOn) {
-        navigate('/')
-      }
-      setIsButtonReleased(false)
-    }, 300)
+  }
+
+  function handleReleaseButtonFinished() {
+    if (isOn) {
+      navigate('/')
+    }
+    setIsButtonReleased(false)
+  }
+
+  function handleStartupFinished() {
+    setIsStartupPlaying(false)
+  }
+
+  function handleShutdownFinished() {
+    setIsShutdownPlaying(false)
+  }
+
+  function clickLink() {
+    setIsLinkClicked(true)
+  }
+
+  function handleClickLinkFinished() {
+    setIsLinkClicked(false)
   }
 
   return (
@@ -184,7 +214,7 @@ const Pokedex: React.FC = ({ children }) => {
             <GrillLine />
           </Grill>
           <Screen isOn={isOn}>
-            <Content isOn={isOn}>{children}</Content>
+            <Content isOn={isOn}>{children(clickLink)}</Content>
             <Glare />
           </Screen>
         </Frame>
@@ -193,17 +223,33 @@ const Pokedex: React.FC = ({ children }) => {
         url="/audio/buttonPress.mp3"
         playStatus={isButtonPressed ? 'PLAYING' : 'STOPPED'}
         autoLoad={true}
+        onFinishedPlaying={handlePressButtonFinished}
       />
       <Sound
         url="/audio/buttonRelease.mp3"
         playStatus={isButtonReleased ? 'PLAYING' : 'STOPPED'}
         autoLoad={true}
+        onFinishedPlaying={handleReleaseButtonFinished}
       />
       <Sound
         url="/audio/startup.mp3"
-        playStatus={isOn ? 'PLAYING' : 'STOPPED'}
+        playStatus={isStartupPlaying ? 'PLAYING' : 'STOPPED'}
         autoLoad={true}
         volume={33}
+        onFinishedPlaying={handleStartupFinished}
+      />
+      <Sound
+        url="/audio/shutdown.mp3"
+        playStatus={isShutdownPlaying ? 'PLAYING' : 'STOPPED'}
+        autoLoad={true}
+        volume={33}
+        onFinishedPlaying={handleShutdownFinished}
+      />
+      <Sound
+        url="/audio/link.mp3"
+        playStatus={isLinkClicked ? 'PLAYING' : 'STOPPED'}
+        autoLoad={true}
+        onFinishedPlaying={handleClickLinkFinished}
       />
     </Container>
   )

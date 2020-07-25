@@ -13,9 +13,7 @@ const client = new ApolloClient({
 const App: React.FC = () => {
   return (
     <ApolloProvider client={client}>
-      <Pokedex>
-        <Screens />
-      </Pokedex>
+      <Pokedex>{clickLink => <Screens clickLink={clickLink} />}</Pokedex>
     </ApolloProvider>
   )
 }

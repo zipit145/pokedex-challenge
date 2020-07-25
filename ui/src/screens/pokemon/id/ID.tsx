@@ -42,7 +42,9 @@ const POKEMON_ONE = gql`
   }
 `
 
-const ID: React.FC<RouteComponentProps & { id?: string }> = ({ id }) => {
+const ID: React.FC<
+  RouteComponentProps & { id?: string; clickLink: Function }
+> = ({ id, clickLink }) => {
   const { loading, error, data } = useQuery(POKEMON_ONE, { variables: { id } })
   const pokemon:
     | {
@@ -70,6 +72,7 @@ const ID: React.FC<RouteComponentProps & { id?: string }> = ({ id }) => {
   return (
     <>
       <Link
+        onMouseDown={clickLink as any}
         to="/pokemon"
         style={{ color: 'black', marginLeft: '1rem', marginTop: '1rem' }}
       >
@@ -101,6 +104,7 @@ const ID: React.FC<RouteComponentProps & { id?: string }> = ({ id }) => {
         )}
         {pokemon.prevEvolutions.map(prevEvolution => (
           <Link
+            onMouseDown={clickLink as any}
             style={{
               display: 'inline-flex',
               flexDirection: 'column',
@@ -118,6 +122,7 @@ const ID: React.FC<RouteComponentProps & { id?: string }> = ({ id }) => {
         )}
         {pokemon.nextEvolutions.map(nextEvolution => (
           <Link
+            onMouseDown={clickLink as any}
             style={{
               display: 'inline-flex',
               flexDirection: 'column',

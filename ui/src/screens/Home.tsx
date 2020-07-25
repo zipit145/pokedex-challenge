@@ -29,22 +29,17 @@ const Home: React.FC<RouteComponentProps> = () => {
   function releaseButton() {
     setIsButtonReleased(true)
     setTimeout(() => {
+      navigate('/pokemon')
+    }, 300)
+    setTimeout(() => {
       setIsButtonReleased(false)
     }, 300)
-  }
-
-  function handleClick() {
-    navigate('/pokemon')
   }
 
   return (
     <Container>
       <h1>Welcome to your Pokédex!</h1>
-      <NesButton
-        onMouseDown={pressButton}
-        onMouseUp={releaseButton}
-        onClick={handleClick}
-      >
+      <NesButton onMouseDown={pressButton} onMouseUp={releaseButton}>
         Click to Start
       </NesButton>
       <Sound

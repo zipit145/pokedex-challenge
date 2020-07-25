@@ -44,7 +44,9 @@ const POKEMON_MANY = gql`
   }
 `
 
-const Pokemon: React.FC<RouteComponentProps> = () => {
+const Pokemon: React.FC<RouteComponentProps & { clickLink: Function }> = ({
+  clickLink,
+}) => {
   const { loading, error, data } = useQuery(POKEMON_MANY)
   const pokemonList:
     | Array<{ id: string; name: string; img: string; num: string }>
@@ -61,7 +63,7 @@ const Pokemon: React.FC<RouteComponentProps> = () => {
     <Container rounded>
       <List>
         {pokemonList.map(pokemon => (
-          <Link to={pokemon.id}>
+          <Link to={pokemon.id} onMouseDown={clickLink as any}>
             <ListItem>
               <img src={pokemon.img} />
               {pokemon.name} - {pokemon.num}
