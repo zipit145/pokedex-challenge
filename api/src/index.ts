@@ -1,7 +1,9 @@
 import { ApolloServer, gql, IResolvers } from 'apollo-server'
 import sortBy from 'lodash/sortBy'
 import find from 'lodash/find'
+import filterLodash from 'lodash/filter'
 import pokemon from './pokemon.json'
+import Fuse from 'fuse.js'
 
 interface Pokemon {
   id: string
@@ -37,10 +39,17 @@ const typeDefs = gql`
   }
 
   type Query {
-    pokemonMany(skip: Int, limit: Int): [Pokemon!]!
+    pokemonMany(skip: Int, limit: Int, filter: String): [Pokemon!]!
     pokemonOne(id: ID!): Pokemon
   }
 `
+
+// sortBy was a very easy way to restructure the pokemon object for fuse, a little messy but it works
+const pokemonFuse = sortBy(pokemon, poke => parseInt(poke.id, 10))
+// Fuse was one of the simpler implementations and usages I found. I am running out of time and decided to implement the quickest thing to turn this in in time.
+const fuse = new Fuse(pokemonFuse, {
+  keys: ['name',]
+})
 
 const resolvers: IResolvers<any, any> = {
   Pokemon: {
@@ -62,12 +71,15 @@ const resolvers: IResolvers<any, any> = {
   Query: {
     pokemonMany(
       _,
-      { skip = 0, limit = 999 }: { skip?: number; limit?: number }
+      { skip = 0, limit = 999, filter="" }: { skip?: number; limit?: number, filter: string }
     ): Pokemon[] {
-      return sortBy(pokemon, poke => parseInt(poke.id, 10)).slice(
-        skip,
-        limit + skip
-      )
+      return filter ?
+        fuse.search(filter).map(poke => poke.item)
+        :
+        sortBy(pokemon, poke => parseInt(poke.id, 10)).slice(
+            skip,
+            limit + skip
+        )
     },
     pokemonOne(_, { id }: { id: string }): Pokemon {
       return (pokemon as Record<string, Pokemon>)[id]

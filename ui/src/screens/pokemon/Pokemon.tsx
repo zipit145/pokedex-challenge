@@ -4,6 +4,7 @@ import { RouteComponentProps, Link } from '@reach/router'
 import { useQuery, gql } from '@apollo/client'
 import { Container as NesContainer } from 'nes-react'
 
+
 const Container = styled(NesContainer)`
   && {
     background: white;
@@ -34,8 +35,8 @@ const ListItem = styled.li`
 `
 
 const POKEMON_MANY = gql`
-  query($skip: Int, $limit: Int) {
-    pokemonMany(skip: $skip, limit: $limit) {
+  query($skip: Int, $limit: Int, $filter: String) {
+    pokemonMany(skip: $skip, limit: $limit, filter: $filter) {
       id
       name
       num
@@ -44,10 +45,24 @@ const POKEMON_MANY = gql`
   }
 `
 
+
 const Pokemon: React.FC<RouteComponentProps & { clickLink: Function }> = ({
   clickLink,
 }) => {
-  const { loading, error, data } = useQuery(POKEMON_MANY)
+  const [filter, setFilterTerm] = React.useState(undefined)
+  const [onChangeTerm, setChangeTerm] = React.useState(undefined)
+
+  function onChangeInput(e: any) {
+    setChangeTerm(e.target.value)
+  }
+  function onClickSearch(e: any){
+    setFilterTerm(onChangeTerm)
+    e.preventDefault()
+  }
+
+  const { loading, error, data } = useQuery(POKEMON_MANY, {
+    variables: {filter}
+  })
   const pokemonList:
     | Array<{ id: string; name: string; img: string; num: string }>
     | undefined = data?.pokemonMany
@@ -61,6 +76,10 @@ const Pokemon: React.FC<RouteComponentProps & { clickLink: Function }> = ({
 
   return (
     <Container rounded>
+      <form>
+        <input placeholder="search for pokemon here" onChange={onChangeInput}></input>
+        <button onClick={onClickSearch}>Search for Specific Pokemon</button>
+      </form>
       <List>
         {pokemonList.map(pokemon => (
           <Link to={pokemon.id} onMouseDown={clickLink as any}>

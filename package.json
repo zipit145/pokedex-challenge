@@ -11,5 +11,8 @@
   "license": "ISC",
   "engines": {
     "node": "^12.8.0"
+  },
+  "dependencies": {
+    "fuse.js": "^6.4.1"
   }
 }
