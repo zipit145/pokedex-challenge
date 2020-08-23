@@ -39,17 +39,10 @@ const typeDefs = gql`
   }
 
   type Query {
-    pokemonMany(skip: Int, limit: Int, filter: String): [Pokemon!]!
+    pokemonMany(skip: Int, limit: Int, filter: String, filterType: String, filterWeakness: String): [Pokemon!]!
     pokemonOne(id: ID!): Pokemon
   }
 `
-
-// sortBy was a very easy way to restructure the pokemon object for fuse, a little messy but it works
-const pokemonFuse = sortBy(pokemon, poke => parseInt(poke.id, 10))
-// Fuse was one of the simpler implementations and usages I found. I am running out of time and decided to implement the quickest thing to turn this in in time.
-const fuse = new Fuse(pokemonFuse, {
-  keys: ['name',]
-})
 
 const resolvers: IResolvers<any, any> = {
   Pokemon: {
@@ -71,14 +64,49 @@ const resolvers: IResolvers<any, any> = {
   Query: {
     pokemonMany(
       _,
-      { skip = 0, limit = 999, filter="" }: { skip?: number; limit?: number, filter: string }
+      { skip = 0, limit = 999, filter="", filterType="", filterWeakness="" }: { skip?: number; limit?: number, filter: string, filterType: string, filterWeakness: string }
     ): Pokemon[] {
-      return filter ?
-        fuse.search(filter).map(poke => poke.item)
-        :
-        sortBy(pokemon, poke => parseInt(poke.id, 10)).slice(
-            skip,
-            limit + skip
+      // sortBy was a very easy way to restructure the pokemon object for fuse, a little messy but it works
+      let pokemonFuse = sortBy(pokemon, poke => parseInt(poke.id, 10))
+      if(filterType !== '' && filterWeakness !== ''){
+        pokemonFuse = pokemonFuse.filter(poke => {
+          if(poke.types.includes(filterType) && poke.weaknesses.includes(filterWeakness)){
+            return poke
+          }
+        })
+      } else if (filterType !== ''){
+        pokemonFuse = pokemonFuse.filter(poke => {
+          if(poke.types.includes(filterType)){
+            return poke
+          }
+        })
+      } else if (filterWeakness !== ''){
+        pokemonFuse = pokemonFuse.filter(poke => {
+          if(poke.weaknesses.includes(filterWeakness)){
+            return poke
+          }
+        })
+      }
+
+      if(filter || filterWeakness || filterType){
+        // Fuse was one of the simpler implementations and usages I found. I did not plan to spend a lot of time configuring the fuzzy search for accuracy, or complexity beyond searching the pokemon name (because this is a proof of concept not a live web app that customers use). With this in mind,it made sense to go with a very simple implementation for this task, such as Fuse.
+        const fuse = new Fuse(pokemonFuse, {
+          keys: ['name']
+        })
+        return filter ?
+        fuse.search(filter).map(poke => poke.item).slice(
+          skip,
+          limit + skip
+        )
+          :
+        sortBy(pokemonFuse, poke => parseInt(poke.id, 10)).slice(
+          skip,
+          limit + skip
+        )
+      }
+      return sortBy(pokemon, poke => parseInt(poke.id, 10)).slice(
+          skip,
+          limit + skip
         )
     },
     pokemonOne(_, { id }: { id: string }): Pokemon {
